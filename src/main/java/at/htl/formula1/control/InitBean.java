@@ -80,6 +80,8 @@ public class InitBean {
      * @param teamFileName
      */
     private void readTeamsAndDriversFromFile(String teamFileName) {
+
+
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("teams.csv").getFile());
 

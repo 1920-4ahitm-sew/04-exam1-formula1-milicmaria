@@ -29,7 +29,12 @@ public class ResultsRestClient {
      */
     public void readResultsFromEndpoint() {
 
-        JsonArray payload = null;
+        client = ClientBuilder.newClient();
+        target = client.target(RESULTS_ENDPOINT);
+
+        Response response = (Response) target.request(MediaType.APPLICATION_JSON);
+
+        JsonArray payload = response.readEntity(JsonArray.class);
 
         persistResult(payload);
     }
