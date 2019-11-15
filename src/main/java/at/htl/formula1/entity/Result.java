@@ -9,7 +9,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "F1_RESULT")
-@NamedQuery(name = "Result.pointsSum", query = "select r from Result r where r.driver = :DRIVER")
+@NamedQuery(name = "Result.getPointsSum", query = "select r.driver, r.points from Result r where r.driver = :DRIVER order by max(sum(r.points))")
 public class Result {
 
     @Transient

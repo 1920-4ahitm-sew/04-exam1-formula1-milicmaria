@@ -67,7 +67,7 @@ public class ResultsRestClient {
 
         for (JsonValue jsonValue : resultsJson){
             JsonObject resultJson = jsonValue.asJsonObject();
-
+            em.persist(new Result());
         }
 
     }

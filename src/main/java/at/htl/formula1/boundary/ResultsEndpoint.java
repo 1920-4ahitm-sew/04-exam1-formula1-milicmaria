@@ -27,7 +27,7 @@ public class ResultsEndpoint {
     @GET
     @Path("{name}")
     public JsonObject getPointsSumOfDriver(@QueryParam("name") String name) {
-        em.find(Result.class, name);
+        JsonObject json = (JsonObject) em.createNamedQuery("Result.getPointsSum", Result.class).getResultList();
 
         return null;
     }
@@ -52,6 +52,13 @@ public class ResultsEndpoint {
         return null;
     }
 
+    @GET
+    @Path("racewon/{}")
+    public Response getTeam(@QueryParam("team") String team){
+        //Response response = em.createNamedQuery("");
+
+        return null;
+    }
     // Ergänzen Sie Ihre eigenen Methoden ...
 
 }
