@@ -5,6 +5,7 @@ import at.htl.formula1.entity.Driver;
 import at.htl.formula1.entity.Race;
 import at.htl.formula1.entity.Team;
 
+import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
@@ -27,6 +28,7 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 @ApplicationScoped
+@Transactional
 public class InitBean {
 
     private static final String TEAM_FILE_NAME = "teams.csv";
@@ -62,7 +64,9 @@ public class InitBean {
                 String line = sc.nextLine();
                 if(line != null){
                     String[] rows = line.split(";");
-                    em.persist(new Race());
+                    System.out.println("split");
+
+                  //  em.persist(new Race(rows[0], rows[1], LocalDate.parse(rows[2])));
 
                 }
             }
@@ -89,11 +93,8 @@ public class InitBean {
             sc.nextLine();
             while(sc.hasNext()){
                 String line = sc.nextLine();
-                if(line != null){
-                    String[] rows = line.split(";");
-                    em.persist(new Race());
-
-                }
+                String[] rows = line.split(";");
+                persistTeamAndDrivers(rows);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -114,6 +115,17 @@ public class InitBean {
      */
 
     private void persistTeamAndDrivers(String[] line) {
+        Team help;
+        while (line != null){
+            if (line.length != 1){
+                help = new Team(line[0]);
+                em.persist(help);
+            } else {
+                em.persist(new Team(line[0]));
+            }
+            //em.persist(new Driver(line[1], (Team)line[0].toString());
+        }
+
 
     }
 

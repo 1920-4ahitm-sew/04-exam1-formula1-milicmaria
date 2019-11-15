@@ -10,14 +10,18 @@ import javax.json.JsonValue;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+@ApplicationPath("api")
 public class ResultsRestClient {
 
+    @PersistenceContext
+    EntityManager em;
 
     public static final String RESULTS_ENDPOINT = "http://vm90.htl-leonding.ac.at/results";
     private Client client;
@@ -60,6 +64,11 @@ public class ResultsRestClient {
      */
     @Transactional
     void persistResult(JsonArray resultsJson) {
+
+        for (JsonValue jsonValue : resultsJson){
+            JsonObject resultJson = jsonValue.asJsonObject();
+
+        }
 
     }
 

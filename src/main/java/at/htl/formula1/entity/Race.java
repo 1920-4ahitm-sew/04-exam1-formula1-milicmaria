@@ -2,16 +2,23 @@ package at.htl.formula1.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Formula1 - Race
  *
  * The id's are not assigned by the database. The id's are given.
  */
-public class Race {
+@Entity
+@Table(name = "F1_RACE")
+@NamedQuery(name = "Race.getWinner", query = "select r from Race r,Result r2 where r.id=r2.race and (select max(r.points) from Result r)")
+public class Race implements Serializable {
 
+    @Id
     private Long id;
     private String country;
     private LocalDate date;
@@ -24,6 +31,7 @@ public class Race {
         this.id = id;
         this.country = country;
         this.date = date;
+        date.format(DateTimeFormatter.ofPattern("dd.mm.yyyy"));
     }
     //endregion
 
