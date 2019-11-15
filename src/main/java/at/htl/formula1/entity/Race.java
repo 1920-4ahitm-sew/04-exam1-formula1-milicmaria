@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Entity
 @Table(name = "F1_RACE")
-//@NamedQuery(name = "Race.getWinner", query = "select r from Race r,Result r2 where r.id=r2.race and (select max(r.points) from Result r)")
+@NamedQuery(name = "Race.getWinner", query = "select r.id from Race r, Result r2 where r.country=r2.race")
 public class Race implements Serializable {
 
     @Id

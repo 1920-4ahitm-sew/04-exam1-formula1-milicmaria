@@ -64,9 +64,8 @@ public class InitBean {
                 String line = sc.nextLine();
                 if(line != null){
                     String[] rows = line.split(";");
-                    System.out.println("split");
-
-                  //  em.persist(new Race(rows[0], rows[1], LocalDate.parse(rows[2])));
+                    //System.out.println("split");
+                    em.persist(new Race(Long.valueOf(rows[0]), rows[1], LocalDate.parse(rows[2])));
 
                 }
             }
@@ -123,7 +122,10 @@ public class InitBean {
             } else {
                 em.persist(new Team(line[0]));
             }
-            //em.persist(new Driver(line[1], (Team)line[0].toString());
+
+            //em.persist(new Driver(line[1], line[0]));
+            //em.persist(new Driver(line[2], line[0]));
+
         }
 
 

@@ -1,0 +1,5 @@
+Ich habe das Einlesen aus der .csl-Datei probiert dazu auch noch versucht die Daten vom REST zu bekommen.
+ => das alles hat aber leider nicht geklappt
+
+Ich habe noch die Aufgaben von 3 - 6 probiert zu lösen, hat mir aber in einem Sinne nichts gebracht,
+weil ich keine Daten hatte könnte ich das auch nicht prüfen.

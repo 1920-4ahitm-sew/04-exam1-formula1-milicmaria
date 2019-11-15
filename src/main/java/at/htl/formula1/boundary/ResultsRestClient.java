@@ -4,9 +4,7 @@ import at.htl.formula1.entity.Driver;
 import at.htl.formula1.entity.Race;
 import at.htl.formula1.entity.Result;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -67,7 +65,7 @@ public class ResultsRestClient {
 
         for (JsonValue jsonValue : resultsJson){
             JsonObject resultJson = jsonValue.asJsonObject();
-            em.persist(new Result());
+            em.persist(resultJson);
         }
 
     }
