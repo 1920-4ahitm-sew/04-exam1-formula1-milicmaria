@@ -34,7 +34,7 @@ public class ResultsRestClient {
         client = ClientBuilder.newClient();
         target = client.target(RESULTS_ENDPOINT);
 
-        Response response = (Response) target.request(MediaType.APPLICATION_JSON);
+        Response response = target.request(MediaType.APPLICATION_JSON).get();
 
         JsonArray payload = response.readEntity(JsonArray.class);
 
@@ -63,10 +63,10 @@ public class ResultsRestClient {
     @Transactional
     void persistResult(JsonArray resultsJson) {
 
-        for (JsonValue jsonValue : resultsJson){
+        /*for (JsonValue jsonValue : resultsJson){
             JsonObject resultJson = jsonValue.asJsonObject();
             em.persist(resultJson);
-        }
+        }*/
 
     }
 

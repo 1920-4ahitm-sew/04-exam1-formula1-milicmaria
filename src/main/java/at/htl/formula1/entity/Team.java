@@ -1,6 +1,7 @@
 package at.htl.formula1.entity;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
 
 /**
  * Formula1 - Team
@@ -9,6 +10,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "F1_TEAM")
+@Transactional
 public class Team {
 
     @Id

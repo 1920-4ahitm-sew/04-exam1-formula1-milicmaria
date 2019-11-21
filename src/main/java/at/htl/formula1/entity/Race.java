@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Entity
 @Table(name = "F1_RACE")
+@Transactional
 @NamedQuery(name = "Race.getWinner", query = "select r.id from Race r, Result r2 where r.country=r2.race")
 public class Race implements Serializable {
 

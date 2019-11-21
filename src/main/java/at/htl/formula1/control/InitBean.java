@@ -28,7 +28,6 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 @ApplicationScoped
-@Transactional
 public class InitBean {
 
     private static final String TEAM_FILE_NAME = "teams.csv";
@@ -55,21 +54,21 @@ public class InitBean {
      * @param racesFileName
      */
     private void readRacesFromFile(String racesFileName) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("races.csv").getFile());
+        URL url = Thread.currentThread().getContextClassLoader()
+                .getResource("/" + racesFileName);
+        try (Stream stream = Files.lines(Paths.get(url.getPath(), String.valueOf(StandardCharsets.UTF_8)))) {
+            String[] rows = url.getFile().split(";");
 
-        try (Scanner sc = new Scanner(file)){
-            sc.nextLine();
-            while(sc.hasNext()){
-                String line = sc.nextLine();
-                if(line != null){
-                    String[] rows = line.split(";");
-                    //System.out.println("split");
-                    em.persist(new Race(Long.valueOf(rows[0]), rows[1], LocalDate.parse(rows[2])));
+            Race r = new Race();
+            r.setId(Long.valueOf(rows[0]));
+            r.setCountry(rows[1]);
+            r.setDate(LocalDate.parse(rows[2], DateTimeFormatter.ofPattern("dd.mm.yyyy")));
+            em.persist(r);
 
-                }
-            }
-        } catch (FileNotFoundException e) {
+            stream.forEach(em::merge);
+
+            //stream.forEach(this::);
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -83,22 +82,29 @@ public class InitBean {
      * @param teamFileName
      */
     private void readTeamsAndDriversFromFile(String teamFileName) {
+        URL url = Thread.currentThread().getContextClassLoader()
+                .getResource("/" + teamFileName);
 
+        try (Stream stream = Files.lines(Paths.get(url.getPath(), String.valueOf(StandardCharsets.UTF_8)))){
+            String[] rows = url.getFile().split(";");
 
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("teams.csv").getFile());
+            Team t = new Team();
+            t.setName(rows[0]);
+            //stream.forEach(em::merge);
+            em.persist(t);
 
-        try (Scanner sc = new Scanner(file)){
-            sc.nextLine();
-            while(sc.hasNext()){
-                String line = sc.nextLine();
-                String[] rows = line.split(";");
-                persistTeamAndDrivers(rows);
-            }
-        } catch (FileNotFoundException e) {
+            Team team = em.find(Team.class, t.getId());
+            Driver d1 = new Driver(rows[1], team);
+            Driver d2 = new Driver(rows[2], team);
+            em.persist(d1);
+            em.persist(d2);
+            //stream.forEach(em::merge);
+
+            persistTeamAndDrivers(rows);
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -114,7 +120,7 @@ public class InitBean {
      */
 
     private void persistTeamAndDrivers(String[] line) {
-        Team help;
+       /* Team help;
         while (line != null){
             if (line.length != 1){
                 help = new Team(line[0]);
@@ -126,7 +132,7 @@ public class InitBean {
             //em.persist(new Driver(line[1], line[0]));
             //em.persist(new Driver(line[2], line[0]));
 
-        }
+        }*/
 
 
     }

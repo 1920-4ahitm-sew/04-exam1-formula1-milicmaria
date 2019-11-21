@@ -1,6 +1,7 @@
 package at.htl.formula1.entity;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
 
 /**
  * Formula1 - Result
@@ -9,6 +10,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "F1_RESULT")
+@Transactional
 @NamedQueries({
         @NamedQuery(name = "Result.getPointsSum", query = "select r.driver, r.points from Result r where r.driver = :DRIVER order by max(sum(r.points))"),
         @NamedQuery(name = "Result.driverWithPoints", query = "select r.driver, sum(r.points) from Result r where r.driver = :DRIVER"),
