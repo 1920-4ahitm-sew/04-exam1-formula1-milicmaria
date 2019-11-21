@@ -1,0 +1,127 @@
+# Testdokumentation
+
+RestConfig erstellen!
+
+[source, java]
+----
+package at.htl.formula1.boundary;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+
+@ApplicationPath("api")
+public class RestConfig extends Application {
+}
+----
+
+LocalDateConverter gelöscht.
+
+### Aufgabe 1
+
+#### Import von CSV
+
+[source, java]
+----
+ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("races.csv").getFile());
+
+        try (Scanner sc = new Scanner(file)){
+            sc.nextLine();
+            while(sc.hasNext()){
+                String line = sc.nextLine();
+                if(line != null){
+                    String[] rows = line.split(";");
+                    //System.out.println("split");
+                    em.persist(new Race(Long.valueOf(rows[0]), rows[1], LocalDate.parse(rows[2])));
+
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+----
+
+[source, java]
+----
+ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(TEAM_FILE_NAME).getFile());
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))){
+            br.readLine();
+            String first;
+            while((first = br.readLine()) != null){
+                String[] lines = first.split(";");
+
+                em.persist(new Race(Long.valueOf(lines[0]), lines[1], LocalDate.parse(lines[2], DateTimeFormatter.ofPattern("dd.mm.yyyy"))));
+
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+----
+
+bei pom.xml dazu
+[source, java]
+----
+<dependency>
+    <groupId>org.jboss.resteasy</groupId>
+    <artifactId>resteasy-jackson-provider</artifactId>
+    <version>3.9.0.Final</version>
+</dependency>
+----
+
+### Aufgabe 2
+
+### Import von Daten vom REST
+
+aus ResultsRestClient entfernt
+[source, java]
+----
+@ApplicationPath("api")
+----
+
+RestConfig erstellt
+[source,java]
+----
+package at.htl.formula1.boundary;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+
+@ApplicationPath("api")
+public class RestConfig extends Application {
+}
+----
+
+ResultRestClient.java
+[source, java]
+----
+void persistResult(JsonArray resultsJson) {
+    for (JsonValue jsonValue : resultsJson){
+        JsonObject resultJson = jsonValue.asJsonObject();
+        em.persist(resultJson);
+    }
+}
+----
+nicht fertig gemacht gehabt
+[source,java]
+----
+void persistResult(JsonArray resultsJson) {
+    for (JsonValue jsonValue : resultsJson){
+        JsonObject resultJson = jsonValue.asJsonObject();
+        Driver d = em.createNamedQuery("Driver.findByName", Driver.class)
+                .setParameter("NAME", resultJson.getString("driverFullName"))
+                .getSingleResult();
+        Race r = em.find(Race.class, (long) resultJson.getInt("raceNo"));
+
+        Result result = new Result();
+        result.setDriver(d);
+        result.setRace(r);
+        result.setPoints(result.pointsPerPosition[result.getPoints()]);
+        result.setPosition(resultJson.getInt("position"));
+        em.persist(result);
+    }
+}
+----
+
+
