@@ -10,7 +10,14 @@ import javax.transaction.Transactional;
  */
 @Entity
 @Table(name = "F1_DRIVER")
-@NamedQuery(name = "Driver.findByName", query = "select d from Driver d where d.name = :NAME")
+@NamedQueries({
+        @NamedQuery(
+                name = "Driver.findByName",
+                query = "select d from Driver d where d.name = :NAME"),
+        @NamedQuery(
+                name = "Driver.findWinnerOfRace",
+                query = "select r.driver from Result r where r.race = :RACE and r.points >= (select max(r2.points) from Result r2 where r2.race=r.race)")
+})
 @Transactional
 public class Driver {
 

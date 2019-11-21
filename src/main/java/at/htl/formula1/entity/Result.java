@@ -12,9 +12,21 @@ import javax.transaction.Transactional;
 @Table(name = "F1_RESULT")
 @Transactional
 @NamedQueries({
-        @NamedQuery(name = "Result.getPointsSum", query = "select r.driver, r.points from Result r where r.driver = :DRIVER order by max(sum(r.points))"),
-        @NamedQuery(name = "Result.driverWithPoints", query = "select r.driver, sum(r.points) from Result r where r.driver = :DRIVER"),
-        @NamedQuery(name = "Result.getWinner", query = "select r from Result r where r.driver in (select d.team from Driver d, Driver d2 where d.team=d2.team) and r.points = max(r.points)")
+        @NamedQuery(
+                name = "Result.getPointsSum",
+                query = "select sum(r.points) from Result r where r.driver = :DRIVER "),
+        @NamedQuery(
+                name = "Result.driverWithPoints",
+                query = "select r.driver, sum(r.points) from Result r where r.driver = :DRIVER"),
+        @NamedQuery(
+                name = "Result.getWinner",
+                query = "select r from Result r where r.driver in (select d.team from Driver d, " +
+                        "Driver d2 where d.team=d2.team) and r.points = max(r.points)"),
+        @NamedQuery(
+                name = "Result.findRacesByTeam",
+                query = "select r.race from Result r where r.driver.team = :TEAM and r.position = 1"),
+        @NamedQuery(name = "Result.getSumPoints",
+                query = "select r.driver.name, sum(r.points) from Result r group by r.driver.name")
 })
 public class Result {
 

@@ -3,6 +3,7 @@ package at.htl.formula1.boundary;
 import at.htl.formula1.entity.Driver;
 import at.htl.formula1.entity.Race;
 import at.htl.formula1.entity.Result;
+import at.htl.formula1.entity.Team;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -26,43 +27,63 @@ public class ResultsEndpoint {
      * @return JsonObject
      */
     @GET
-    @Path("{name}")
+    @Produces(MediaType.APPLICATION_JSON)
     public JsonObject getPointsSumOfDriver(@QueryParam("name") String name) {
-        JsonObject json = (JsonObject) em.createNamedQuery("Result.getPointsSum", Result.class).getResultList();
+        Driver d = em
+                .createNamedQuery("Driver.findByName", Driver.class)
+                .setParameter("NAME", name)
+                .getSingleResult();
+        Long dPoints = em
+                .createNamedQuery("Result.getPointsSum", Long.class)
+                .setParameter("DRIVER", d)
+                .getSingleResult();
 
-        return json;
-    }
+        JsonObjectBuilder objBuilder = Json.createObjectBuilder();
+        objBuilder.add("d", d.getName());
+        objBuilder.add("dPoints", dPoints);
 
-    /**
-     * @param id des Rennens
-     * @return
-     */
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findWinnerOfRace(@PathParam("id") long id) {
-        Race r = em.createNamedQuery("Race.getWinner", Race.class).getSingleResult();
-        id = r.getId();
-
-        return Response.ok().entity(r).build();
+        return objBuilder.build();
     }
 
     @GET
-    @Path("winner/{county}")
+    @Path("winner/{country}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWinner(@PathParam("county") String county){
-       Result r = em.createNamedQuery("Result.getWinner", Result.class).getSingleResult();
-        // Response response = em.createNamedQuery("Race.getWinner", Race.class).getSingleResult();
-        return Response.ok(r).entity(r).build();
+    public Response findWinnerOfRace(@PathParam("country") String country) {
+        Race race = em
+                .createNamedQuery("Race.findByCountry", Race.class)
+                .setParameter("COUNTRY", country)
+                .getSingleResult();
+        Driver driver = em
+                .createNamedQuery("Driver.findWinnerOfRace", Driver.class)
+                .setParameter("RACE", race)
+                .getSingleResult();
+
+        return Response.ok(driver).build();
+    }
+
+    @GET
+    @Path("raceWon")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getWinner(@QueryParam("team") String name){
+        Team team = em
+                .createNamedQuery("Team.findByName", Team.class)
+                .setParameter("NAME", name)
+                .getSingleResult();
+        List<Race> raceWon = em
+                .createNamedQuery("Result.findRacesByTeam", Race.class)
+                .setParameter("TEAM", team)
+                .getResultList();
+
+        return Response.ok(raceWon).build();
     }
 
     @GET
     @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Object[]> getDriverWithPoints(String driver){
-        //Response response = em.createNamedQuery("");
-       // List<Object[]> obj = em.createNamedQuery("Result.driverWithPoints", Result.class).setParameter("DRIVER", driver).getResultList();
-        return null;
+        List<Object[]> obj = em.createNamedQuery("Result.getSumPoints", Object[].class).getResultList();
+
+        return obj;
     }
     // Ergänzen Sie Ihre eigenen Methoden ...
 

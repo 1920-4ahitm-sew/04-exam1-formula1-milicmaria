@@ -11,6 +11,7 @@ import javax.transaction.Transactional;
 @Entity
 @Table(name = "F1_TEAM")
 @Transactional
+@NamedQuery(name = "Team.findByName", query = "select t from Team t where t.name = :NAME")
 public class Team {
 
     @Id
