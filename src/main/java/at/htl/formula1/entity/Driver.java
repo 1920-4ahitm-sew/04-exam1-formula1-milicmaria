@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
  */
 @Entity
 @Table(name = "F1_DRIVER")
+@NamedQuery(name = "Driver.findByName", query = "select d from Driver d where d.name = :NAME")
 @Transactional
 public class Driver {
 

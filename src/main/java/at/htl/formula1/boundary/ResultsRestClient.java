@@ -68,6 +68,23 @@ public class ResultsRestClient {
             em.persist(resultJson);
         }*/
 
-    }
+        for (JsonValue jsonValue : resultsJson) {
+            JsonObject resultJson = jsonValue.asJsonObject();
 
+            Driver d = em.createNamedQuery("Driver.findByName", Driver.class)
+                    .setParameter("NAME", resultJson.getString("driverFullName"))
+                    .getSingleResult();
+
+            Race r = em.find(Race.class, (long) resultJson.getInt("raceNo"));
+
+            Result result = new Result();
+            result.setDriver(d);
+            result.setRace(r);
+            result.setPoints(result.pointsPerPosition[result.getPoints()]);
+            result.setPosition(resultJson.getInt("position"));
+
+            em.persist(result);
+
+        }
+    }
 }
