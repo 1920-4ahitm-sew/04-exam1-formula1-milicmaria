@@ -1,0 +1,282 @@
+# Testdokumentation
+
+RestConfig erstellen!
+
+[source, java]
+----
+package at.htl.formula1.boundary;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+
+@ApplicationPath("api")
+public class RestConfig extends Application {
+}
+----
+
+LocalDateConverter gelöscht.
+
+### Aufgabe 1
+
+#### Import von CSV
+
+Um Datum richtig zu importieren:
+[source,java]
+----
+DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+----
+
+races.csv import
+[source, java]
+----
+ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("races.csv").getFile());
+
+        try (Scanner sc = new Scanner(file)){
+            sc.nextLine();
+            while(sc.hasNext()){
+                String line = sc.nextLine();
+                if(line != null){
+                    String[] rows = line.split(";");
+                    //System.out.println("split");
+                    em.persist(new Race(Long.valueOf(rows[0]), rows[1], LocalDate.parse(rows[2])));
+
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+----
+[source,java]
+----
+        URL url = Thread.currentThread().getContextClassLoader()
+                .getResource(racesFileName);
+        try (Stream<String> stream = Files.lines(Paths.get(url.getPath()), StandardCharsets.UTF_8)) {
+            stream.skip(1)
+                    .map(s -> s.split(";"))
+                    .map(line -> new Race(Long.valueOf(line[0]), line[1], LocalDate.parse(line[2], dtf)))
+                    .forEach(em::merge);
+//            String[] rows = url.getFile().split(";");
+//            Race r = new Race();
+//            r.setId(Long.valueOf(rows[0]));
+//            r.setCountry(rows[1]);
+//            r.setDate(LocalDate.parse(rows[2], dtf));
+//            em.persist(r);
+//            stream.forEach(em::merge);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+----
+
+
+teams.csv
+[source,java]
+----
+ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(TEAM_FILE_NAME).getFile());
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))){
+            br.readLine();
+            String first;
+            while((first = br.readLine()) != null){
+                String[] lines = first.split(";");
+                Team t = new Team();
+
+                em.persist(new Team(lines[0]));
+
+                em.find(Team.class, t.getId());
+                em.persist(new Driver(lines[1], t));
+                em.persist(new Driver(lines[2], t));
+
+                persistTeamAndDrivers(lines);
+            }
+        } catch (IOException e) {
+              e.printStackTrace();
+        }
+----
+[source, java]
+----
+        URL url = Thread.currentThread().getContextClassLoader()
+                .getResource(teamFileName);
+
+        try (Stream<String> stream = Files.lines(Paths.get(url.getPath()), StandardCharsets.UTF_8)){
+            stream.skip(1)
+                    .map(s -> s.split(";"))
+                    .forEach(this::persistTeamAndDrivers);
+
+//            String[] rows = url.getFile().split(";");
+//            Team t = new Team();
+//            t.setName(rows[0]);
+//            //stream.forEach(em::merge);
+//            em.persist(t);
+//            Team team = em.find(Team.class, t.getId());
+//            Driver d1 = new Driver(rows[1], team);
+//            Driver d2 = new Driver(rows[2], team);
+//            em.persist(d1);
+//            em.persist(d2);
+//            stream.forEach(em::merge);
+//            persistTeamAndDrivers(rows);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+----
+
+persistTeamAndDrivers
+
+[source,java]
+----
+Team help;
+while (line != null){
+    if (line.length != 1){
+        help = new Team(line[0]);
+        em.persist(help);
+    } else {
+        em.persist(new Team(line[0]));
+    }
+    //em.persist(new Driver(line[1], line[0]));
+    //em.persist(new Driver(line[2], line[0]));
+}
+----
+
+[source,java]
+----
+Team team = null;
+try {
+    team = em
+            .createQuery("select t from Team t where t.name = :NAME", Team.class)
+            .setParameter("NAME", line[0])
+            .getSingleResult();
+} catch (NoResultException e){
+    team = new Team(line[0]);
+    em.persist(team);
+}
+em.persist(new Driver(line[1], team));
+em.persist(new Driver(line[2], team));
+}
+----
+
+### Aufgabe 2
+
+### Import von Daten vom REST
+
+aus ResultsRestClient entfernt
+[source, java]
+----
+@ApplicationPath("api")
+----
+
+RestConfig erstellt
+[source,java]
+----
+package at.htl.formula1.boundary;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+
+@ApplicationPath("api")
+public class RestConfig extends Application {
+}
+----
+
+ResultRestClient.java
+[source, java]
+----
+void persistResult(JsonArray resultsJson) {
+    for (JsonValue jsonValue : resultsJson){
+        JsonObject resultJson = jsonValue.asJsonObject();
+        em.persist(resultJson);
+    }
+}
+----
+nicht fertig gemacht gehabt
+[source,java]
+----
+void persistResult(JsonArray resultsJson) {
+    for (JsonValue jsonValue : resultsJson){
+        JsonObject resultJson = jsonValue.asJsonObject();
+        Driver d = em.createNamedQuery("Driver.findByName", Driver.class)
+                .setParameter("NAME", resultJson.getString("driverFullName"))
+                .getSingleResult();
+        Race r = em.find(Race.class, (long) resultJson.getInt("raceNo"));
+
+        Result result = new Result();
+        result.setDriver(d);
+        result.setRace(r);
+        result.setPoints(result.pointsPerPosition[result.getPoints()]);
+        result.setPosition(resultJson.getInt("position"));
+        em.persist(result);
+    }
+}
+----
+
+
+### ResultsEndpoint
+
+[source,java]
+----
+@NamedQuery(
+        name = "Race.getWinner",
+        query = "select r.id from Race r, Result r2 where r.country=r2.race")
+
+@NamedQuery(
+        name = "Driver.findByName",
+        query = "select d from Driver d where d.name = :NAME"
+)
+
+@NamedQueries({
+        @NamedQuery(
+                name = "Result.getPointsSum",
+                query = "select r.driver, r.points from Result r where " +
+                 "r.driver = :DRIVER order by max(sum(r.points))"),
+        @NamedQuery(
+                name = "Result.driverWithPoints",
+                query = "select r.driver, sum(r.points) from Result r " +
+                 "where r.driver = :DRIVER"),
+        @NamedQuery(
+                name = "Result.getWinner",
+                query = "select r from Result r where r.driver in " +
+                 "(select d.team from Driver d, Driver d2 where d.team=d2.team)" +
+                  " and r.points = max(r.points)")
+})
+
+
+----
+
+Queries waren zu kompliziert!
+
+[source,java]
+----
+@NamedQuery(
+        name = "Team.findByName",
+        query = "select t from Team t where t.name = :NAME")
+@NamedQueries({
+        @NamedQuery(
+                name = "Result.getPointsSum",
+                query = "select sum(r.points) from Result r where r.driver = :DRIVER "),
+        @NamedQuery(
+                name = "Result.driverWithPoints",
+                query = "select r.driver, sum(r.points) from Result r where r.driver = :DRIVER"),
+        @NamedQuery(
+                name = "Result.getWinner",
+                query = "select r from Result r where r.driver in (select d.team from Driver d, " +
+                        "Driver d2 where d.team=d2.team) and r.points = max(r.points)"),
+        @NamedQuery(
+                name = "Result.findRacesByTeam",
+                query = "select r.race from Result r where r.driver.team = :TEAM and r.position = 1"),
+        @NamedQuery(name = "Result.getSumPoints",
+                query = "select r.driver.name, sum(r.points) from Result r group by r.driver.name")
+})
+@NamedQueries({
+        @NamedQuery(
+                name = "Driver.findByName",
+                query = "select d from Driver d where d.name = :NAME"),
+        @NamedQuery(
+                name = "Driver.findWinnerOfRace",
+                query = "select r.driver from Result r where r.race = :RACE and r.points >= (select max(r2.points) from Result r2 where r2.race=r.race)")
+})
+@NamedQuery(
+        name = "Race.findByCountry",
+        query = "select r from Race r where r.country = :COUNTRY")
+----
+

@@ -70,7 +70,7 @@ public class InitBean {
 //            Race r = new Race();
 //            r.setId(Long.valueOf(rows[0]));
 //            r.setCountry(rows[1]);
-//            r.setDate(LocalDate.parse(rows[2], DateTimeFormatter.ofPattern("dd.mm.yyyy")));
+//            r.setDate(LocalDate.parse(rows[2], dtf));
 //            em.persist(r);
 //
 //            stream.forEach(em::merge);
