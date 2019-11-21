@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,10 +29,12 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 @ApplicationScoped
+@Transactional
 public class InitBean {
 
     private static final String TEAM_FILE_NAME = "teams.csv";
     private static final String RACES_FILE_NAME = "races.csv";
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @PersistenceContext
     EntityManager em;
@@ -55,17 +58,22 @@ public class InitBean {
      */
     private void readRacesFromFile(String racesFileName) {
         URL url = Thread.currentThread().getContextClassLoader()
-                .getResource("/" + racesFileName);
-        try (Stream stream = Files.lines(Paths.get(url.getPath(), String.valueOf(StandardCharsets.UTF_8)))) {
-            String[] rows = url.getFile().split(";");
+                .getResource(racesFileName);
+        try (Stream<String> stream = Files.lines(Paths.get(url.getPath()), StandardCharsets.UTF_8)) {
+            stream.skip(1)
+                    .map(s -> s.split(";"))
+                    .map(line -> new Race(Long.valueOf(line[0]), line[1], LocalDate.parse(line[2], dtf)))
+                    .forEach(em::merge);
 
-            Race r = new Race();
-            r.setId(Long.valueOf(rows[0]));
-            r.setCountry(rows[1]);
-            r.setDate(LocalDate.parse(rows[2], DateTimeFormatter.ofPattern("dd.mm.yyyy")));
-            em.persist(r);
-
-            stream.forEach(em::merge);
+//            String[] rows = url.getFile().split(";");
+//
+//            Race r = new Race();
+//            r.setId(Long.valueOf(rows[0]));
+//            r.setCountry(rows[1]);
+//            r.setDate(LocalDate.parse(rows[2], DateTimeFormatter.ofPattern("dd.mm.yyyy")));
+//            em.persist(r);
+//
+//            stream.forEach(em::merge);
 
             //stream.forEach(this::);
         } catch (IOException e) {
@@ -83,24 +91,28 @@ public class InitBean {
      */
     private void readTeamsAndDriversFromFile(String teamFileName) {
         URL url = Thread.currentThread().getContextClassLoader()
-                .getResource("/" + teamFileName);
+                .getResource(teamFileName);
 
-        try (Stream stream = Files.lines(Paths.get(url.getPath(), String.valueOf(StandardCharsets.UTF_8)))){
-            String[] rows = url.getFile().split(";");
+        try (Stream<String> stream = Files.lines(Paths.get(url.getPath()), StandardCharsets.UTF_8)){
+            stream.skip(1)
+                    .map(s -> s.split(";"))
+                    .forEach(this::persistTeamAndDrivers);
 
-            Team t = new Team();
-            t.setName(rows[0]);
+//            String[] rows = url.getFile().split(";");
+//
+//            Team t = new Team();
+//            t.setName(rows[0]);
+//            //stream.forEach(em::merge);
+//            em.persist(t);
+//
+//            Team team = em.find(Team.class, t.getId());
+//            Driver d1 = new Driver(rows[1], team);
+//            Driver d2 = new Driver(rows[2], team);
+//            em.persist(d1);
+//            em.persist(d2);
             //stream.forEach(em::merge);
-            em.persist(t);
 
-            Team team = em.find(Team.class, t.getId());
-            Driver d1 = new Driver(rows[1], team);
-            Driver d2 = new Driver(rows[2], team);
-            em.persist(d1);
-            em.persist(d2);
-            //stream.forEach(em::merge);
-
-            persistTeamAndDrivers(rows);
+            //persistTeamAndDrivers(rows);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -120,20 +132,20 @@ public class InitBean {
      */
 
     private void persistTeamAndDrivers(String[] line) {
-       /* Team help;
-        while (line != null){
-            if (line.length != 1){
-                help = new Team(line[0]);
-                em.persist(help);
-            } else {
-                em.persist(new Team(line[0]));
-            }
+        Team team = null;
 
-            //em.persist(new Driver(line[1], line[0]));
-            //em.persist(new Driver(line[2], line[0]));
+        try {
+            team = em
+                    .createQuery("select t from Team t where t.name = :NAME", Team.class)
+                    .setParameter("NAME", line[0])
+                    .getSingleResult();
+        } catch (NoResultException e){
+            team = new Team(line[0]);
+            em.persist(team);
+        }
 
-        }*/
-
+        em.persist(new Driver(line[1], team));
+        em.persist(new Driver(line[2], team));
 
     }
 

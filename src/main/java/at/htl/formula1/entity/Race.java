@@ -33,7 +33,6 @@ public class Race implements Serializable {
         this.id = id;
         this.country = country;
         this.date = date;
-        date.format(DateTimeFormatter.ofPattern("dd.mm.yyyy"));
     }
     //endregion
 
